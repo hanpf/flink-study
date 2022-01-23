@@ -12,9 +12,11 @@ public class ClickhouseApp {
 
 
     public static void main(String[] args) throws Exception{
+        //初始化环境
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
+        //source
         env.socketTextStream("localhost", 9001)
+                //业务逻辑转换代码
                 .map(new MapFunction<String, Tuple3<Integer,String,Integer>>() {
                     @Override
                     public Tuple3<Integer, String, Integer> map(String s) throws Exception {
@@ -23,7 +25,10 @@ public class ClickhouseApp {
 
                         return Tuple3.of(Integer.valueOf(splits[0].trim()),splits[1].trim(),Integer.valueOf(splits[2].trim()));
                     }
-                }).addSink(JdbcSink.sink(
+
+                })
+                //sink
+                .addSink(JdbcSink.sink(
                         "insert into user1 values(?,?,? )",
 
                         (pstmt,x)->{
@@ -35,7 +40,7 @@ public class ClickhouseApp {
                                 .withUrl("jdbc:clickhouse://localhost:8123/db_user")
                                 .withDriverName("ru.yandex.clickhouse.ClickHouseDriver").build()
                 ));
-
+            //执行应用程序
         env.execute();
 
     }

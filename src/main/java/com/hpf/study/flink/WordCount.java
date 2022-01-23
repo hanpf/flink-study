@@ -1,6 +1,8 @@
 package com.hpf.study.flink;
 
-public class WordCount {
+import java.io.Serializable;
+
+public class WordCount implements Serializable {
 
 
     private String word;

@@ -1,28 +1,16 @@
 package com.hpf.study.flink;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.ReduceFunction;
-import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.streaming.api.datastream.DataStreamSource;
-import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.Collector;
 
 public class StreamingWordCount {
     public static void main(String[] args) throws Exception {
-        int port;
-        try {
-            final ParameterTool parameterTool = ParameterTool.fromArgs(args);
-            port = parameterTool.getInt("port");
-        } catch (Exception e) {
-            System.out.println("没有指定port，使用默认的port:9000======");
-            port = 9000;
-        }
 
-
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        final DataStreamSource<String> textStream = env.socketTextStream("127.0.0.1", port, "\n");
+         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+/*        final DataStreamSource<String> textStream = env.socketTextStream("127.0.0.1", port, "\n");
 
         final SingleOutputStreamOperator<WordCount> word = textStream.flatMap(new FlatMapFunction<String, WordCount>() {
 
@@ -40,7 +28,68 @@ public class StreamingWordCount {
                     }
                 });
         word.print().setParallelism(1);
-        env.execute("socket stream end!!!");
+        env.execute("socket stream end!!!");*/
+
+        //flatMap(env);
+        keyBy(env);
+        env.execute("job end");
+
+    }
+
+
+    public static void keyBy(){
+
+    }
+
+
+    public static void flatMap(StreamExecutionEnvironment env){
+        env.socketTextStream("localhost",9002).flatMap(new FlatMapFunction<String, String>() {
+            @Override
+            public void flatMap(String s, Collector<String> collector) throws Exception {
+                for(String word:s.split(",")){
+                    collector.collect(word);
+                }
+            }
+        }).print();
+
+    }
+
+    public static void keyBy(StreamExecutionEnvironment env) throws Exception{
+
+        env.socketTextStream("localhost",9002).slotSharingGroup("source").flatMap(new FlatMapFunction<String, String>() {
+            @Override
+            public void flatMap(String s, Collector<String> collector) throws Exception {
+                for(String word:s.split(",")){
+                    collector.collect(word);
+                }
+            }
+        }).slotSharingGroup("flatmap").setParallelism(2).map(new MapFunction<String, WordCount>() {
+            @Override
+            public WordCount map(String s) throws Exception {
+                return new WordCount(s,1);
+            }
+        }).map(new MapFunction<WordCount, WordCount>() {
+            @Override
+            public WordCount map(WordCount wordCount) throws Exception {
+                return new WordCount(wordCount.getWord(),1);
+            }
+        }).keyBy(new KeySelector<WordCount, String>() {
+            @Override
+            public String getKey(WordCount wordCount) throws Exception {
+                return wordCount.getWord();
+            }
+        }).sum("count").print();
+
+    }
+
+    public static void keyBy1(StreamExecutionEnvironment env){
+
+        env.socketTextStream("localhost",9002).flatMap(new FlatMapFunction<String, String>() {
+            @Override
+            public void flatMap(String s, Collector<String> collector) throws Exception {
+
+            }
+        });
 
     }
 }
