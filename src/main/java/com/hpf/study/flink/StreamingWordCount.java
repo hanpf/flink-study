@@ -56,6 +56,7 @@ public class StreamingWordCount {
 
     public static void keyBy(StreamExecutionEnvironment env) throws Exception{
 
+
         env.socketTextStream("localhost",9002).slotSharingGroup("source").flatMap(new FlatMapFunction<String, String>() {
             @Override
             public void flatMap(String s, Collector<String> collector) throws Exception {

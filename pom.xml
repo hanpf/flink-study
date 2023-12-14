@@ -10,7 +10,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.14.2</flink.version>
+        <flink.version>1.10.2</flink.version>
         <target.java.version>1.8</target.java.version>
         <scala.binary.version>2.12</scala.binary.version>
         <maven.compiler.source>${target.java.version}</maven.compiler.source>
@@ -39,9 +39,13 @@
     <dependency>
         <groupId>org.apache.flink</groupId>
         <artifactId>flink-connector-jdbc_${scala.binary.version}</artifactId>
+        <version>1.11.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-runtime-web_2.11</artifactId>
         <version>${flink.version}</version>
     </dependency>
-
     <dependency>
         <groupId>ru.yandex.clickhouse</groupId>
         <artifactId>clickhouse-jdbc</artifactId>
